@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tecnologías Chapinas</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.9.2/tailwind.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/heroicons@1.0.6/outline.css"> <!-- Añadir Heroicons -->
+    </head>
+    <body>
+        <div>
+            <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+            
+            <div x-data="{ sidebarOpen: false }" class="flex h-screen bg-green-400">
+                <div :class="sidebarOpen ? 'block' : 'hidden'" @click="sidebarOpen = false" class="fixed inset-0 z-20 transition-opacity bg-green opacity-0 lg:hidden"></div>
+            
+                <div :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto transition duration-300 transform bg-blue-900 lg:translate-x-0 lg:static lg:inset-0">
+                    <!-- Logo y nombre de la empresa -->
+                    <div class="flex items-center justify-center mt-8">
+                        <a href="">
+                            <img src="https://cdn-icons-png.flaticon.com/128/4365/4365271.png" alt="Logo de la empresa" class="w-12 h-12">
+                        </a>
+                        <span class="mx-2 text-2xl font-semibold text-gray-500">Tecnologías Chapinas</span>
+                    </div>
+                    
+                    <nav class="mt-10">
+                        <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-500 hover:bg-gray-100 hover:text-gray-100" 
+                            href="{% url 'uploadfile' %}">
+                            <img src="https://cdn-icons-png.flaticon.com/128/4301/4301577.png" alt="Carga Archivo" class="w-6 h-6"> <!-- Cambia la ruta a tu icono de carga de ventas -->
+                            <span class="mx-3">Cargar Archivo</span>
+                        </a>
+            
+                        <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-700 hover:bg-gray-100 hover:text-gray-100"
+                            href="">
+                            <img src="https://cdn-icons-png.flaticon.com/128/4149/4149678.png" alt="Procesar Archivo" class="w-6 h-6"> <!-- Cambia la ruta a tu icono de procesar archivo -->
+                            <span class="mx-3">Peticiones</span>
+                        </a>
+            
+                        <a class="flex items-center px-6 py-2 mt-4 text-gray-500 hover:bg-gray-700 hover:bg-gray-100 hover:text-gray-100"
+                            href="{% url 'studentdata'%}">
+                            <img src="https://cdn-icons-png.flaticon.com/128/888/888000.png" alt="Gráfica Ventas" class="w-6 h-6"> <!-- Cambia la ruta a tu icono de gráfica de ventas -->
+                            <span class="mx-3">Ayuda</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Parte dinámica que contiene el contenido que cambia -->
+                <div class="flex flex-col flex-1 overflow-hidden">
+                    <main role="main" class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+                        {% block content %}{% endblock %}
+                    </main>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

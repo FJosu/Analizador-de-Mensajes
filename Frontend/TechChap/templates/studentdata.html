@@ -1,0 +1,19 @@
+{% extends "main.html" %}
+{% block content %}
+
+<div class="flex items-center justify-center h-screen bg-gray-100">
+    <div class="bg-blue-50 shadow-xl rounded-lg p-10 text-center border-4 border-blue-500">
+        <div class="relative">
+            <!-- Figura decorativa en la parte superior -->
+            <svg class="absolute top-0 left-0 transform -translate-y-8 -translate-x-8 h-24 w-24 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+            </svg>
+            <h1 class="text-4xl font-bold text-gray-800 mb-6">Datos del Estudiante</h1>
+            <p class="mt-4 text-2xl text-gray-700">Nombre: <span class="font-semibold text-blue-500">Josué David Figueroa Acosta</span></p>
+            <p class="mt-4 text-2xl text-gray-700">Carnet: <span class="font-semibold text-blue-500">202307378</span></p>
+            <p class="mt-4 text-2xl text-gray-700">Curso: <span class="font-semibold text-blue-500">Introducción a la programación y computación 2 "A"</span></p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

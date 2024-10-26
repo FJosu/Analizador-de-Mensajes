@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tecnologías Chapinas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.9.2/tailwind.min.css">
+    <style>
+        @media(max-width:1520px) {
+            .left-svg {
+                display: none;
+            }
+        }
+
+        #nav-mobile-btn.close span:first-child {
+            transform: rotate(45deg);
+            top: 4px;
+            position: relative;
+            background: #a0aec0;
+        }
+
+        #nav-mobile-btn.close span:nth-child(2) {
+            transform: rotate(-45deg);
+            margin-top: 0px;
+            background: #a0aec0;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden antialiased bg-gray-200">
+    <!-- Header Section -->
+    <header class="relative z-50 w-full h-24 bg-blue-900">
+        <div class="container flex items-center justify-center h-full max-w-6xl px-8 mx-auto sm:justify-between xl:px-0">
+            <a href="/" class="relative flex items-center inline-block h-5 h-full font-black leading-none">
+                <img src="https://cdn-icons-png.flaticon.com/128/4365/4365271.png" alt="Logo Tecnologías Chapinas" class="w-auto h-6">
+                <span class="ml-3 text-xl text-white">Tecnologías Chapinas<span class="text-green-600">.</span></span>
+            </a>
+            
+            <div class="absolute left-0 flex-col items-center justify-center hidden w-full pb-8 mt-48 border-b border-gray-200 md:relative md:w-auto md:bg-transparent md:border-none md:mt-0 md:flex-row md:p-0 md:items-end md:flex md:justify-between">
+                <a href="{% url 'main' %}" class="relative z-40 inline-block w-auto h-full px-5 py-3 text-sm font-bold leading-none text-white transition-all transition duration-100 duration-300 bg-blue-500 rounded shadow-md fold-bold lg:bg-white lg:text-blue-800 sm:w-full lg:shadow-none hover:shadow-xl">
+                    Inicia Sesión</a>
+            </div>
+
+            <div id="nav-mobile-btn" class="absolute top-0 right-0 z-50 block w-6 mt-8 mr-10 cursor-pointer select-none md:hidden sm:mt-10">
+                <span class="block w-full h-1 mt-2 duration-200 transform bg-green-600 rounded-full sm:mt-1"></span>
+                <span class="block w-full h-1 mt-1 duration-200 transform bg-green-600 rounded-full"></span>
+            </div>
+        </div>
+    </header>
+    <!-- End Header Section-->
+
+    <!-- BEGIN FEATURES SECTION -->
+    <div id="features" class="relative w-full px-8 py-10 border-t border-gray-200 md:py-16 lg:py-24 xl:py-40 xl:px-0">
+        <div class="container flex flex-col items-center justify-between h-full max-w-6xl mx-auto">
+            <h2 class="my-5 text-base font-medium tracking-tight text-green-600 uppercase">Explora nuestras soluciones tecnológicas</h2>
+            <h3 class="max-w-2xl px-5 mt-2 text-3xl font-black leading-tight text-center text-gray-800 sm:mt-0 sm:px-0 sm:text-6xl">
+                ¡Impulsa tu negocio con Tecnologías Chapinas! 💻✨</h3>
+        </div>
+    </div>
+    <!-- END FEATURES SECTION -->
+
+    <!-- BEGIN SERVICES SECTION -->
+    <div id="services" class="relative w-full px-8 py-10 bg-blue-900 md:py-16 lg:py-24 xl:py-32 xl:px-0">
+        <div class="container flex flex-col items-center justify-between h-full max-w-6xl mx-auto">
+            <h3 class="text-2xl font-bold text-green-600">Nuestros Servicios</h3>
+            <p class="mt-4 text-lg text-gray-300">Soluciones innovadoras para cada necesidad</p>
+            <div class="grid grid-cols-1 gap-8 mt-10 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="p-6 bg-white rounded shadow-md">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/31/12/14/laptop-791205_1280.jpg" alt="Servicio 1" class="mb-4">
+                    <h4 class="text-xl font-bold text-gray-800">Desarrollo de Software</h4>
+                    <p class="mt-2 text-gray-600">Sistemas personalizados para optimizar tus procesos.</p>
+                </div>
+                <div class="p-6 bg-white rounded shadow-md">
+                    <img src="https://cdn.pixabay.com/photo/2018/01/17/07/42/web-3083228_1280.jpg" alt="Servicio 2" class="mb-4">
+                    <h4 class="text-xl font-bold text-gray-800">Consultoría IT</h4>
+                    <p class="mt-2 text-gray-600">Soluciones estratégicas para el crecimiento de tu empresa.</p>
+                </div>
+                <div class="p-6 bg-white rounded shadow-md">
+                    <img src="https://cdn.pixabay.com/photo/2016/03/29/03/02/cloud-1287777_1280.jpg" alt="Servicio 3" class="mb-4">
+                    <h4 class="text-xl font-bold text-gray-800">Computación en la Nube</h4>
+                    <p class="mt-2 text-gray-600">Infraestructura y servicios seguros en la nube.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END SERVICES SECTION -->
+
+    <footer class="px-4 pt-12 pb-8 text-white bg-blue-900 border-t border-gray-200">
+        <div class="container flex flex-col justify-between max-w-6xl px-4 mx-auto overflow-hidden lg:flex-row">
+            <div class="w-full pl-12 mr-4 text-left lg:w-1/4 sm:text-center sm:pl-0 lg:text-left">
+                <a href="/" class="flex justify-start block text-left sm:text-center lg:text-left sm:justify-center lg:justify-start">
+                    <span class="flex items-start sm:items-center">
+                        <svg class="w-auto h-6 text-green-600 fill-current" viewBox="0 0 194 116" xmlns="http://www.w3.org/2000/svg">
+                            <g fill-rule="evenodd">
+                                <path d="M96.869 0L30 116h104l-9.88-17.134H59.64l47.109-81.736zM0 116h19.831L77 17.135 67.088 0z"></path>
+                                <path d="M87 68.732l9.926 17.143 29.893-51.59L174.15 116H194L126.817 0z"></path>
+                            </g>
+                        </svg>
+                    </span>
+                </a>
+                <p class="mt-6 mr-4 text-base text-gray-300">Tecnologías Chapinas - Innovación al alcance de tu negocio.</p>
+            </div>
+
+            <div class="pt-2 pt-4 mt-2 text-center text-gray-400 border-t border-gray-100">Empoderando negocios en Guatemala con soluciones tecnológicas avanzadas 💻.</div>
+        </div>
+    </footer>
+</body>
+</html>
