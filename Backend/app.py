@@ -97,8 +97,16 @@ class AnalizadorSentimientos:
             # Guardar en la base de datos
             self.save_to_database(analisis_por_fecha)
 
-            logging.info("File processed successfully")
-            return {"status": "success"}
+            # Generar el XML de salida
+            xml_response = self.generate_output_xml(analisis_por_fecha)
+            
+            # Guardar el archivo XML de salida
+            xml_file_path = os.path.join(os.getcwd(), 'resultado_analisis.xml')
+            with open(xml_file_path, 'wb') as f:
+                f.write(xml_response)
+
+            logging.info(f"XML file saved at: {xml_file_path}")
+            return {"status": "success", "file_path": xml_file_path}
         except ET.ParseError:
             logging.error("Invalid XML file")
             return {'error': 'Invalid XML file'}
@@ -174,6 +182,38 @@ class AnalizadorSentimientos:
         if fecha_match:
             return fecha_match.group(0)  # Retorna la fecha encontrada
         return "Fecha desconocida"
+    
+    def generate_output_xml(self, analisis_por_fecha):
+        root = ET.Element('lista_respuestas')
+        
+        for fecha, datos in analisis_por_fecha.items():
+            respuesta_elem = ET.SubElement(root, 'respuesta')
+            ET.SubElement(respuesta_elem, 'fecha').text = fecha
+
+            # Datos de mensajes totales en la fecha
+            mensajes_elem = ET.SubElement(respuesta_elem, 'mensajes')
+            for tipo, cantidad in datos['mensajes'].items():
+                ET.SubElement(mensajes_elem, tipo).text = str(cantidad)
+
+            # Análisis por empresa y servicio
+            analisis_elem = ET.SubElement(respuesta_elem, 'analisis')
+            for empresa, empresa_datos in datos['empresas'].items():
+                empresa_elem = ET.SubElement(analisis_elem, 'empresa', nombre=empresa)
+                
+                empresa_mensajes_elem = ET.SubElement(empresa_elem, 'mensajes')
+                for tipo, cantidad in empresa_datos['mensajes'].items():
+                    ET.SubElement(empresa_mensajes_elem, tipo).text = str(cantidad)
+
+                servicios_elem = ET.SubElement(empresa_elem, 'servicios')
+                for servicio, servicio_datos in empresa_datos['servicios'].items():
+                    servicio_elem = ET.SubElement(servicios_elem, 'servicio', nombre=servicio)
+                    servicio_mensajes_elem = ET.SubElement(servicio_elem, 'mensajes')
+                    for tipo, cantidad in servicio_datos.items():
+                        ET.SubElement(servicio_mensajes_elem, tipo).text = str(cantidad)
+
+        # Indentación para hacer el XML legible
+        ET.indent(root, space="  ", level=0)
+        return ET.tostring(root, encoding='UTF-8', method='xml')
 
 # Instancia del analizador
 analizador = AnalizadorSentimientos()
@@ -211,5 +251,64 @@ def get_file():
         logging.error(f"Error sending file: {str(e)}")
         return jsonify({'error': 'Error sending file'}), 500
 
+
+@app.route('/submit-data', methods=['POST'])
+def obtener_datos():
+    data = request.get_json()
+    fecha_solicitada = data.get('fecha')
+    empresa_solicitada = data.get('empresa')
+    print(fecha_solicitada)
+    print(empresa_solicitada)
+    
+    try:
+        # Cargar y parsear el archivo XML
+        tree = ET.parse('resultado_analisis.xml')  # Cambia a la ruta de tu archivo XML
+        root = tree.getroot()
+        print("Archivo XML cargado correctamente")
+    except FileNotFoundError:
+        return jsonify({"error": "Archivo XML no encontrado"}), 500
+    except ET.ParseError:
+        return jsonify({"error": "Error al parsear el archivo XML"}), 500
+
+    # Buscar la respuesta que coincide con la fecha solicitada
+    for respuesta in root.findall('respuesta'):
+        fecha = respuesta.find('fecha').text
+        if fecha == fecha_solicitada:
+            if empresa_solicitada.lower() == "todas":
+                total_positivos = 0
+                total_negativos = 0
+                total_neutros = 0
+
+                for empresa in respuesta.find('analisis').findall('empresa'):
+                    mensajes = empresa.find('mensajes')
+                    total_positivos += int(mensajes.find('positivos').text)
+                    total_negativos += int(mensajes.find('negativos').text)
+                    total_neutros += int(mensajes.find('neutros').text)
+
+                return jsonify({
+                    'positivo': total_positivos,
+                    'negativo': total_negativos,
+                    'neutro': total_neutros
+                })
+
+            for empresa in respuesta.find('analisis').findall('empresa'):
+                if empresa.get('nombre') == empresa_solicitada:
+                    mensajes = empresa.find('mensajes')
+                    positivos = int(mensajes.find('positivos').text)
+                    negativos = int(mensajes.find('negativos').text)
+                    neutros = int(mensajes.find('neutros').text)
+
+                    return jsonify({
+                        'positivo': positivos,
+                        'negativo': negativos,
+                        'neutro': neutros
+                    })
+
+    # Error si no se encuentra la fecha o empresa solicitada
+    print("Fecha o empresa no encontrada en el archivo XML")
+    return jsonify({'error': 'No se encontraron datos para la fecha o empresa especificada.'}), 404
+
+
+    
 if __name__ == '__main__':
     app.run(debug=True)

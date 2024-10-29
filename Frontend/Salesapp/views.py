@@ -24,6 +24,13 @@ def studentdata(request):
     return render(request, 'studentdata.html')
 
 
+def bydate(request):
+    return render(request, 'bydate.html')
+
+def rangebydate(request):
+    return render(request, 'rangebydate.html')
+
+
 
 context = {
     'file_content':None,

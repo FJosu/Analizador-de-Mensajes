@@ -1,0 +1,109 @@
+{% extends "peticion.html" %}
+{% load static %}
+{% block content %}
+<div class="container px-6 py-8 mx-auto">
+    <div class="w-full">
+        <div class="text-center my-6">
+            <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Análisis de Mensajes por Empresa</h3>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-md p-4">
+            <!-- Formulario para ingresar el rango de fechas y el nombre de la empresa -->
+            <form id="rangeForm">
+                <div class="mb-4">
+                    <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                </div>
+                <div class="mb-4">
+                    <label for="fecha_fin" class="block text-sm font-medium text-gray-700">Fecha de Fin</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                </div>
+                <div class="mb-4">
+                    <label for="empresa" class="block text-sm font-medium text-gray-700">Nombre de la Empresa</label>
+                    <input type="text" id="empresa" name="empresa" placeholder="Ingrese 'todas' para mostrar todas" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                </div>
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">Enviar</button>
+            </form>
+            <div id="graficasContainer" class="grid grid-cols-2 gap-4 mt-6">
+                <!-- Aquí se generarán las gráficas de forma dinámica -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Manejar el envío del formulario de rango de fechas
+    document.getElementById('rangeForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const fecha_inicio = document.getElementById('fecha_inicio').value;
+        const fecha_fin = document.getElementById('fecha_fin').value;
+        const empresa = document.getElementById('empresa').value;
+
+        // Convertir fechas de formato yyyy-mm-dd a dd/mm/yyyy
+        const fecha_inicio_format = formatDate(fecha_inicio);
+        const fecha_fin_format = formatDate(fecha_fin);
+
+        // Enviar los datos al backend
+        fetch('http://localhost:5000/fetch-range-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fecha_inicio: fecha_inicio_format, fecha_fin: fecha_fin_format, empresa: empresa })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Datos recibidos:", data);
+            // Limpiar contenedor de gráficas previo para mostrar nuevas
+            document.getElementById('graficasContainer').innerHTML = '';
+            graficarRango(data);
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    });
+
+    // Formatear fechas de yyyy-mm-dd a dd/mm/yyyy
+    function formatDate(fecha) {
+        const [year, month, day] = fecha.split('-');
+        return `${day}/${month}/${year}`;
+    }
+
+    function graficarRango(data) {
+        data.forEach(entry => {
+            const ctx = document.createElement('canvas');
+            document.getElementById('graficasContainer').appendChild(ctx);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Total', 'Positivo', 'Negativo', 'Neutro'],
+                    datasets: [{
+                        label: `Análisis de ${entry.empresa} el ${entry.fecha}`,
+                        data: [entry.total, entry.positivo, entry.negativo, entry.neutro],
+                        backgroundColor: ['#36a2eb', '#4caf50', '#f44336', '#ffeb3b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': ' + tooltipItem.raw;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% endblock %}

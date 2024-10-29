@@ -1,0 +1,114 @@
+{% extends "peticion.html" %}
+{% load static %}
+{% block content %}
+<div class="container px-6 py-8 mx-auto">
+    <div class="w-full">
+        <div class="text-center my-6">
+            <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Análisis de Mensajes por Empresa</h3>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-md p-4">
+            <!-- Formulario para ingresar la fecha y el nombre de la empresa -->
+            <form id="dataForm">
+                <div class="mb-4">
+                    <label for="empresa" class="block text-sm font-medium text-gray-700">Nombre de la Empresa</label>
+                    <input type="text" id="empresa" name="empresa" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                </div>
+                <div class="mb-4">
+                    <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                </div>
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">Enviar</button>
+            </form>
+            <div class="chart-bar mt-6">
+                <canvas id="grafica" width="200" height="100"></canvas> <!-- Tamaño ajustado -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('dataForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const empresa = document.getElementById('empresa').value;
+        let fecha = document.getElementById('fecha').value;
+
+        // Convertir la fecha de yyyy-mm-dd a dd/mm/yyyy
+        const [year, month, day] = fecha.split('-');
+        fecha = `${day}/${month}/${year}`;
+
+        // Enviar los datos al backend
+        fetch('http://localhost:5000/submit-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify({ empresa: empresa, fecha: fecha })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        })
+        .then(data => {
+            console.log("Datos recibidos:", data);
+            graficar(data);
+        })
+        .catch(error => {
+            console.error("Error al enviar los datos:", error);
+        });
+    });
+
+    function graficar(data) {
+        var ctx = document.getElementById('grafica').getContext('2d');
+        var barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Positivo', 'Negativo', 'Neutro'],
+                datasets: [{
+                    label: 'Análisis de Mensajes',
+                    data: [data.positivo, data.negativo, data.neutro], // Asumiendo que el backend devuelve estos campos
+                    backgroundColor: [
+                        'rgb(0, 255, 0)', // Verde para positivo
+                        'rgb(255, 0, 0)', // Rojo para negativo
+                        'rgb(255, 255, 0)' // Amarillo para neutro
+                    ],
+                    borderColor: [
+                        'rgb(0, 200, 0)',
+                        'rgb(200, 0, 0)',
+                        'rgb(200, 200, 0)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% endblock %}

@@ -11,5 +11,8 @@ urlpatterns = [
     path('SendXML/', views.SendXML,name = 'SendXML'),
     path('consultar', views.consultar, name = 'consultar'),
     path('get_file/', views.getFile, name='get_file'),
-    path('Student/', views.studentdata , name = 'Student')
+    path('Student/', views.studentdata , name = 'Student'),
+    path('bydate/', views.bydate, name = 'bydate'),
+    path('rangebydate/', views.rangebydate,name = 'rangebydate'),
+    
 ]
