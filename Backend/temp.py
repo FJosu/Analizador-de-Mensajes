@@ -3,9 +3,8 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 import logging
 import os
-import re
 from flask_cors import CORS
-from xml.dom import minidom
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -17,88 +16,31 @@ class AnalizadorSentimientos:
         self.sentimientos_positivos = []
         self.sentimientos_negativos = []
         self.empresas_servicios = {}
-        self.base_datos_path = 'base_de_datos.xml'
-        self.load_existing_data()
-
-    def load_existing_data(self):
-        """Carga los datos existentes de base_de_datos.xml si existe."""
-        if os.path.exists(self.base_datos_path):
-            try:
-                tree = ET.parse(self.base_datos_path)
-                root = tree.getroot()
-                # Procesar el contenido existente según tu lógica
-                for respuesta in root.findall('respuesta'):
-                    # Aquí puedes agregar lógica para manejar los datos existentes
-                    pass
-                logging.info("Existing data loaded successfully.")
-            except ET.ParseError:
-                logging.error("Error parsing existing XML data.")
-
-    def save_to_database(self, analisis_por_fecha):
-        """Guarda el análisis en el archivo base_de_datos.xml."""
-        if not os.path.exists(self.base_datos_path):
-            # Si el archivo no existe, creamos la estructura base
-            root = ET.Element('lista_respuestas')
-        else:
-            # Si ya existe, lo cargamos
-            tree = ET.parse(self.base_datos_path)
-            root = tree.getroot()
-
-        # Añadir nuevas respuestas al XML
-        for fecha, datos in analisis_por_fecha.items():
-            respuesta_elem = ET.SubElement(root, 'respuesta')
-            ET.SubElement(respuesta_elem, 'fecha').text = fecha
-
-            # Datos de mensajes totales en la fecha
-            mensajes_elem = ET.SubElement(respuesta_elem, 'mensajes')
-            for tipo, cantidad in datos['mensajes'].items():
-                ET.SubElement(mensajes_elem, tipo).text = str(cantidad)
-
-            # Análisis por empresa y servicio
-            analisis_elem = ET.SubElement(respuesta_elem, 'analisis')
-            for empresa, empresa_datos in datos['empresas'].items():
-                empresa_elem = ET.SubElement(analisis_elem, 'empresa', nombre=empresa)
-
-                empresa_mensajes_elem = ET.SubElement(empresa_elem, 'mensajes')
-                for tipo, cantidad in empresa_datos['mensajes'].items():
-                    ET.SubElement(empresa_mensajes_elem, tipo).text = str(cantidad)
-
-                servicios_elem = ET.SubElement(empresa_elem, 'servicios')
-                for servicio, servicio_datos in empresa_datos['servicios'].items():
-                    servicio_elem = ET.SubElement(servicios_elem, 'servicio', nombre=servicio)
-                    servicio_mensajes_elem = ET.SubElement(servicio_elem, 'mensajes')
-                    for tipo, cantidad in servicio_datos.items():
-                        ET.SubElement(servicio_mensajes_elem, tipo).text = str(cantidad)
-
-        # Guardar cambios en el archivo base_de_datos.xml
-        self.pretty_save(root)
-
-    def pretty_save(self, root):
-        """Guarda el XML en formato legible."""
-        xml_str = ET.tostring(root, encoding='utf-8', method='xml')
-        # Usar minidom para formatear el XML
-        parsed = minidom.parseString(xml_str)
-        pretty_xml_str = parsed.toprettyxml(indent="  ")
-
-        with open(self.base_datos_path, 'w', encoding='utf-8') as f:
-            f.write(pretty_xml_str)
-
-        logging.info(f"Data saved to database at: {self.base_datos_path}")
 
     def process_file(self, file):
         try:
             tree = ET.parse(file)
             root = tree.getroot()
 
+            # Procesar el diccionario de sentimientos y empresas
             self.process_dictionary(root.find('diccionario'))
+            
+            # Procesar y clasificar los mensajes
             mensajes = root.find('lista_mensajes').findall('mensaje')
             analisis_por_fecha = self.process_messages(mensajes)
-
-            # Guardar en la base de datos
-            self.save_to_database(analisis_por_fecha)
-
+            
             logging.info("File processed successfully")
-            return {"status": "success"}
+
+            # Generar el XML de salida
+            xml_response = self.generate_output_xml(analisis_por_fecha)
+            
+            # Guardar el archivo XML de salida
+            xml_file_path = os.path.join(os.getcwd(), 'resultado_analisis.xml')
+            with open(xml_file_path, 'wb') as f:
+                f.write(xml_response)
+
+            logging.info(f"XML file saved at: {xml_file_path}")
+            return {"status": "success", "file_path": xml_file_path}
         except ET.ParseError:
             logging.error("Invalid XML file")
             return {'error': 'Invalid XML file'}
@@ -174,6 +116,38 @@ class AnalizadorSentimientos:
         if fecha_match:
             return fecha_match.group(0)  # Retorna la fecha encontrada
         return "Fecha desconocida"
+
+    def generate_output_xml(self, analisis_por_fecha):
+        root = ET.Element('lista_respuestas')
+        
+        for fecha, datos in analisis_por_fecha.items():
+            respuesta_elem = ET.SubElement(root, 'respuesta')
+            ET.SubElement(respuesta_elem, 'fecha').text = fecha
+
+            # Datos de mensajes totales en la fecha
+            mensajes_elem = ET.SubElement(respuesta_elem, 'mensajes')
+            for tipo, cantidad in datos['mensajes'].items():
+                ET.SubElement(mensajes_elem, tipo).text = str(cantidad)
+
+            # Análisis por empresa y servicio
+            analisis_elem = ET.SubElement(respuesta_elem, 'analisis')
+            for empresa, empresa_datos in datos['empresas'].items():
+                empresa_elem = ET.SubElement(analisis_elem, 'empresa', nombre=empresa)
+                
+                empresa_mensajes_elem = ET.SubElement(empresa_elem, 'mensajes')
+                for tipo, cantidad in empresa_datos['mensajes'].items():
+                    ET.SubElement(empresa_mensajes_elem, tipo).text = str(cantidad)
+
+                servicios_elem = ET.SubElement(empresa_elem, 'servicios')
+                for servicio, servicio_datos in empresa_datos['servicios'].items():
+                    servicio_elem = ET.SubElement(servicios_elem, 'servicio', nombre=servicio)
+                    servicio_mensajes_elem = ET.SubElement(servicio_elem, 'mensajes')
+                    for tipo, cantidad in servicio_datos.items():
+                        ET.SubElement(servicio_mensajes_elem, tipo).text = str(cantidad)
+
+        # Indentación para hacer el XML legible
+        ET.indent(root, space="  ", level=0)
+        return ET.tostring(root, encoding='utf8', method='xml')
 
 # Instancia del analizador
 analizador = AnalizadorSentimientos()

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class TechchapConfig(AppConfig):
+class SalesappConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'TechChap'
+    name = 'Salesapp'

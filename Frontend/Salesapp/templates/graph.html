@@ -1,0 +1,105 @@
+{% extends "main.html" %}
+{% load static %}
+{% block content %}
+<div class="container px-6 py-8 mx-auto">
+    <div class="w-full">
+        <div class="text-center my-6">
+            <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Top de ventas por departamento</h3>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-md">
+            <div class="chart-pie">
+                <canvas id="grafica" width="200" height="200"></canvas> <!-- Tamaño ajustado -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function obtenerDatos() {
+        fetch('http://localhost:5000/sales-stats', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            let departamentos = [];
+            let cantidades = [];
+
+            for (const departamento in data) {
+                if (data.hasOwnProperty(departamento)) {
+                    departamentos.push(departamento);
+                    cantidades.push(data[departamento]);
+                }
+            }
+
+            graficar([departamentos, cantidades]);
+        })
+        .catch(error => {
+            console.error("Error al recibir los datos:", error);
+        });
+    }
+
+    function graficar(data) {
+        var ctx = document.getElementById('grafica');
+        var ctx2 = ctx.getContext('2d');
+        var pieChart = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: data[0],
+                datasets: [{
+                    label: 'Total de Ventas por Departamento',
+                    data: data[1],
+                    backgroundColor: [
+                        'rgb(0, 0, 255)', // Azul
+                        'rgb(255, 0, 0)', // Rojo
+                        'rgb(0, 255, 0)', // Verde
+                        'rgb(255, 255, 0)', // Amarillo
+                        'rgb(0, 255, 255)', // Cian
+                        'rgb(255, 0, 255)', // Magenta
+                        'rgb(128, 0, 0)', // Marrón
+                        'rgb(128, 128, 0)', // Oliva
+                        'rgb(0, 128, 128)', // Teal
+                        'rgb(128, 0, 128)', // Púrpura
+                        'rgb(255, 165, 0)', // Naranja
+                        'rgb(0, 100, 0)', // Verde oscuro
+                        'rgb(255, 20, 147)', // Rosa oscuro
+                        'rgb(75, 0, 130)', // Índigo
+                        'rgb(139, 0, 0)', // Rojo oscuro
+                        'rgb(0, 191, 255)', // Azul cielo
+                        'rgb(219, 112, 147)', // Rosa pálido
+                        'rgb(46, 139, 87)', // Verde mar
+                        'rgb(210, 105, 30)', // Chocolate
+                        'rgb(218, 165, 32)', // Dorado
+                        'rgb(255, 99, 71)', // Tomate
+                        'rgb(70, 130, 180)' // Azul acero
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    obtenerDatos();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% endblock %}
