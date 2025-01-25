@@ -3,9 +3,12 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 import logging
 import os
+from datetime import datetime
 import re
 from flask_cors import CORS
 from xml.dom import minidom
+import unicodedata
+
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +23,11 @@ class AnalizadorSentimientos:
         self.base_datos_path = 'base_de_datos.xml'
         self.load_existing_data()
 
+    def remove_accents(self, text):
+        return ''.join(
+            c for c in unicodedata.normalize('NFD', text)
+            if unicodedata.category(c) != 'Mn'
+        )
     def load_existing_data(self):
         """Carga los datos existentes de base_de_datos.xml si existe."""
         if os.path.exists(self.base_datos_path):
@@ -116,8 +124,8 @@ class AnalizadorSentimientos:
 
     def process_dictionary(self, diccionario):
         # Obtener sentimientos positivos y negativos
-        self.sentimientos_positivos = [p.text.strip().lower() for p in diccionario.find('sentimientos_positivos').findall('palabra')]
-        self.sentimientos_negativos = [p.text.strip().lower() for p in diccionario.find('sentimientos_negativos').findall('palabra')]
+        self.sentimientos_positivos = [self.remove_accents(p.text.strip().lower()) for p in diccionario.find('sentimientos_positivos').findall('palabra')]
+        self.sentimientos_negativos = [self.remove_accents(p.text.strip().lower()) for p in diccionario.find('sentimientos_negativos').findall('palabra')]
 
         # Obtener empresas y sus servicios
         empresas = diccionario.find('empresas_analizar').findall('empresa')
@@ -140,7 +148,7 @@ class AnalizadorSentimientos:
         })
 
         for mensaje in mensajes:
-            texto_mensaje = mensaje.text.strip().lower()
+            texto_mensaje = self.remove_accents(mensaje.text.strip().lower())
             fecha = self.extract_date_from_message(texto_mensaje)
             
             # Inicializar contadores para el mensaje
@@ -215,6 +223,70 @@ class AnalizadorSentimientos:
         ET.indent(root, space="  ", level=0)
         return ET.tostring(root, encoding='UTF-8', method='xml')
 
+    def analizar_mensaje_individual(self, mensaje_texto):
+        mensaje_texto = self.remove_accents(mensaje_texto.strip().lower())
+
+        # Extraer fecha, usuario, y red social del mensaje
+        fecha = self.extract_date_from_message(mensaje_texto)
+        usuario = self.extract_user_from_message(mensaje_texto)
+        red_social = self.extract_social_media_from_message(mensaje_texto)
+
+        # Inicializa el análisis de sentimientos
+        positivos = sum(1 for p in self.sentimientos_positivos if p in mensaje_texto)
+        negativos = sum(1 for n in self.sentimientos_negativos if n in mensaje_texto)
+        total_palabras = positivos + negativos
+
+        # Determina el sentimiento general
+        tipo_sentimiento = 'neutro'
+        if positivos > negativos:
+            tipo_sentimiento = 'positivo'
+        elif negativos > positivos:
+            tipo_sentimiento = 'negativo'
+
+        # Calcula el porcentaje de sentimientos
+        porcentaje_positivo = (positivos / total_palabras * 100) if total_palabras > 0 else 0
+        porcentaje_negativo = (negativos / total_palabras * 100) if total_palabras > 0 else 0
+
+        # Detecta empresas y servicios mencionados
+        empresas_mencionadas = []
+        for empresa, servicios in self.empresas_servicios.items():
+            for servicio, alias in servicios.items():
+                if any(a in mensaje_texto for a in alias):
+                    empresas_mencionadas.append({"nombre": empresa, "servicio": servicio})
+
+        # Genera la estructura XML en el formato solicitado
+        respuesta = ET.Element('respuesta')
+        ET.SubElement(respuesta, 'fecha').text = fecha
+        ET.SubElement(respuesta, 'red_social').text = red_social
+        ET.SubElement(respuesta, 'usuario').text = usuario
+
+        empresas_elem = ET.SubElement(respuesta, 'empresas')
+        for empresa_data in empresas_mencionadas:
+            empresa_elem = ET.SubElement(empresas_elem, 'empresa', nombre=empresa_data["nombre"])
+            ET.SubElement(empresa_elem, 'servicio').text = empresa_data["servicio"]
+
+        ET.SubElement(respuesta, 'palabras_positivas').text = str(positivos)
+        ET.SubElement(respuesta, 'palabras_negativas').text = str(negativos)
+        ET.SubElement(respuesta, 'sentimiento_positivo').text = f"{porcentaje_positivo:.2f}%"
+        ET.SubElement(respuesta, 'sentimiento_negativo').text = f"{porcentaje_negativo:.2f}%"
+        ET.SubElement(respuesta, 'sentimiento_analizado').text = tipo_sentimiento
+
+        # Retorna el XML como cadena de texto
+        return ET.tostring(respuesta, encoding='UTF-8', method='xml').decode('UTF-8')
+
+    def extract_date_from_message(self, mensaje):
+        fecha_match = re.search(r'\b\d{2}/\d{2}/\d{4}\b', mensaje)
+        return fecha_match.group(0) if fecha_match else "Fecha desconocida"
+
+    def extract_user_from_message(self, mensaje):
+        usuario_match = re.search(r'usuario:\s+([\w\.\@\d]+)', mensaje)
+        return usuario_match.group(1) if usuario_match else "Usuario desconocido"
+
+    def extract_social_media_from_message(self, mensaje):
+        red_social_match = re.search(r'red social:\s+([A-Za-z]+)', mensaje)
+        return red_social_match.group(1) if red_social_match else "Red social desconocida"
+
+
 # Instancia del analizador
 analizador = AnalizadorSentimientos()
 
@@ -246,6 +318,7 @@ def get_file():
         return jsonify({'error': 'File not found'}), 404
 
     try:
+        print("se envió el archivo")
         return send_file(file_path, as_attachment=True)
     except Exception as e:
         logging.error(f"Error sending file: {str(e)}")
@@ -262,7 +335,7 @@ def obtener_datos():
     
     try:
         # Cargar y parsear el archivo XML
-        tree = ET.parse('resultado_analisis.xml')  # Cambia a la ruta de tu archivo XML
+        tree = ET.parse('resultado_analisis.xml')
         root = tree.getroot()
         print("Archivo XML cargado correctamente")
     except FileNotFoundError:
@@ -270,10 +343,16 @@ def obtener_datos():
     except ET.ParseError:
         return jsonify({"error": "Error al parsear el archivo XML"}), 500
 
-    # Buscar la respuesta que coincide con la fecha solicitada
-    for respuesta in root.findall('respuesta'):
+    # Buscar la respuesta que coincide con la fecha solicitada o el último análisis
+    respuestas = sorted(
+        root.findall('respuesta'),
+        key=lambda r: datetime.strptime(r.find('fecha').text, "%d/%m/%Y"),
+        reverse=True
+    )
+    
+    for respuesta in respuestas:
         fecha = respuesta.find('fecha').text
-        if fecha == fecha_solicitada:
+        if fecha == fecha_solicitada or fecha_solicitada == 'ultimo':
             if empresa_solicitada.lower() == "todas":
                 total_positivos = 0
                 total_negativos = 0
@@ -308,6 +387,67 @@ def obtener_datos():
     print("Fecha o empresa no encontrada en el archivo XML")
     return jsonify({'error': 'No se encontraron datos para la fecha o empresa especificada.'}), 404
 
+
+
+@app.route('/fetch-range-data', methods=['POST'])
+def fetch_range_data():
+    data = request.json
+    start_date = datetime.strptime(data['fecha_inicio'], "%d/%m/%Y")
+    end_date = datetime.strptime(data['fecha_fin'], "%d/%m/%Y")
+    empresa = data['empresa']
+    tree = ET.parse('resultado_analisis.xml')
+    root = tree.getroot()
+
+    resultados = []
+
+    for respuesta in root.findall('respuesta'):
+        fecha = datetime.strptime(respuesta.find('fecha').text, "%d/%m/%Y")
+        if start_date <= fecha <= end_date:
+            if empresa == "todas":
+                # Agrega los datos de todas las empresas en la fecha especificada
+                for empresa_node in respuesta.find('analisis').findall('empresa'):
+                    resultados.append(obtener_datos_empresa(fecha, empresa_node))
+            else:
+                # Agrega los datos solo de la empresa seleccionada
+                empresa_node = respuesta.find(f".//empresa[@nombre='{empresa}']")
+                if empresa_node:
+                    resultados.append(obtener_datos_empresa(fecha, empresa_node))
+
+    return jsonify(resultados)
+
+def obtener_datos_empresa(fecha, empresa_node):
+    return {
+        "fecha": fecha.strftime("%d/%m/%Y"),
+        "empresa": empresa_node.attrib['nombre'],
+        "total": int(empresa_node.find('mensajes/total').text),
+        "positivo": int(empresa_node.find('mensajes/positivos').text),
+        "negativo": int(empresa_node.find('mensajes/negativos').text),
+        "neutro": int(empresa_node.find('mensajes/neutros').text)
+    }
+    
+@app.route('/analizar-mensaje', methods=['POST'])
+def analizar_mensaje():
+    data = request.get_json()
+    mensaje = data.get('mensaje', '')
+
+    if not mensaje:
+        return jsonify({"error": "No message provided"}), 400
+
+    xml_resultado = analizador.analizar_mensaje_individual(mensaje)
+    return xml_resultado, 200, {'Content-Type': 'application/xml'}
+
+@app.route('/delete-file', methods=['DELETE'])
+def delete_file_content():
+    file_path = 'base_de_datos.xml'  # Especifica la ruta de tu archivo
+    
+    # Verificar si el archivo existe
+    if os.path.exists(file_path):
+        # Abrir el archivo en modo de escritura para vaciarlo
+        with open(file_path, 'w') as file:
+            file.write("")  # Escribe una cadena vacía para borrar el contenido
+        return jsonify({"message": "Contenido del archivo eliminado"}), 200
+    else:
+        return jsonify({"error": "Archivo no encontrado"}), 404
 
     
 if __name__ == '__main__':

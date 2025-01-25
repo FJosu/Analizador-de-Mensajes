@@ -4,7 +4,7 @@
 <div class="container px-6 py-8 mx-auto">
     <div class="w-full">
         <div class="text-center my-6">
-            <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Análisis de Mensajes por Empresa</h3>
+            <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">Análisis de Mensajes por Rango de Fechas</h3>
         </div>
         <div class="bg-white border border-gray-200 rounded-lg shadow-md p-4">
             <!-- Formulario para ingresar el rango de fechas y el nombre de la empresa -->
@@ -23,9 +23,12 @@
                 </div>
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">Enviar</button>
             </form>
-            <div id="graficasContainer" class="grid grid-cols-2 gap-4 mt-6">
+            <div id="graficasContainer" class="flex flex-col mt-6 space-y-4">
                 <!-- Aquí se generarán las gráficas de forma dinámica -->
             </div>
+            <button id="generatePDF" class="bg-blue-500 text-white py-2 px-4 rounded mt-4 hover:scale-105">
+                Descargar PDF
+            </button>
         </div>
     </div>
 </div>
@@ -72,8 +75,9 @@
     function graficarRango(data) {
         data.forEach(entry => {
             const ctx = document.createElement('canvas');
+            ctx.className = "w-full";
             document.getElementById('graficasContainer').appendChild(ctx);
-
+    
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -81,7 +85,7 @@
                     datasets: [{
                         label: `Análisis de ${entry.empresa} el ${entry.fecha}`,
                         data: [entry.total, entry.positivo, entry.negativo, entry.neutro],
-                        backgroundColor: ['#36a2eb', '#4caf50', '#f44336', '#ffeb3b']
+                        backgroundColor: ['#0b588c', '#169f1c', '#b90d00', '#c3b642']
                     }]
                 },
                 options: {
@@ -96,14 +100,74 @@
                                     return tooltipItem.label + ': ' + tooltipItem.raw;
                                 }
                             }
+                        },
+                        datalabels: { // Configuration for ChartDataLabels plugin
+                            color: 'rgb(255, 255, 255)', // Text color
+                            anchor: 'center', // Position relative to the end of the bar
+                            align: 'center',  // Text alignment
+                            formatter: (value, context) => context.chart.data.labels[context.dataIndex] // Display label instead of value
                         }
                     }
-                }
+                },
+                plugins: [ChartDataLabels] // Enable the ChartDataLabels plugin
             });
         });
     }
+    
+
+    document.getElementById('generatePDF').addEventListener('click', async () => {
+        const graficasContainer = document.getElementById('graficasContainer');
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('landscape');
+    
+        const canvases = graficasContainer.querySelectorAll('canvas');
+        const imgWidth = 280;  
+        const margin = 10;     
+        const pageHeight = pdf.internal.pageSize.height;
+        let currentHeight = margin; 
+    
+        for (let i = 0; i < canvases.length; i++) {
+            const canvas = canvases[i];
+    
+            // Capturar el canvas como imagen
+            const imgData = await html2canvas(canvas, { useCORS: true }).then(canvas => canvas.toDataURL('image/png'));
+    
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+            if (currentHeight + imgHeight + margin > pageHeight) {
+                pdf.addPage(); 
+                currentHeight = margin; 
+            }
+    
+            pdf.addImage(imgData, 'PNG', margin, currentHeight, imgWidth, imgHeight);
+            currentHeight += imgHeight + margin; 
+        }
+    
+        const pdfBlob = pdf.output('blob'); // Convertir a Blob antes de guardar
+    
+        // Guardar el PDF
+        const handle = await window.showSaveFilePicker({
+            suggestedName: 'analysis_byrange_report.pdf',
+            types: [{
+                description: 'PDF Files',
+                accept: { 'application/pdf': ['.pdf'] }
+            }]
+        });
+    
+        const writable = await handle.createWritable();
+        await writable.write(pdfBlob); // Escribir el Blob en el archivo
+        await writable.close();
+    });
+    
+    
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
 
 {% endblock %}

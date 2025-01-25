@@ -30,6 +30,11 @@ def bydate(request):
 def rangebydate(request):
     return render(request, 'rangebydate.html')
 
+def message(request):
+    return render(request,'message.html')
+
+def pdf(request):
+    return render(request,'pdf.html')
 
 
 context = {
@@ -94,24 +99,47 @@ def SendXML(request):
 
 def getFile(request):
     try:
-        # Realiza una petición GET al endpoint para obtener el archivo
-        response = requests.get(f"{endpoint}/get_file", stream=True)
-        
-        if response.status_code == 404:
-            context['mensaje_error'] = 'Archivo no encontrado en el servidor'
-            return render(request, 'consultar.html', context)
-        
-        # Verificar si la solicitud fue exitosa
-        if response.status_code == 200:
-            # Configura la respuesta para enviar el archivo como descarga
-            response_content = response.content
-            context['file_content'] = response_content.decode('utf-8')  # Decodificar el XML si es de texto
+        if request.method == 'GET':
+            # Realiza una petición GET al endpoint para obtener el archivo
+            response = requests.get(f"{endpoint}/get_file", stream=True)
             
-            return render(request, 'consultar.html', context)
-        else:
-            context['mensaje_error'] = 'Error al obtener el archivo'
-            return render(request, 'consultar.html', context)
+            if response.status_code == 404:
+                context['mensaje_error'] = 'Archivo no encontrado en el servidor'
+                return render(request, 'consultar.html', context)
+            
+            # Verificar si la solicitud fue exitosa
+            if response.status_code == 200:
+                response_content = response.content
+                context['file_content'] = response_content.decode('utf-8') 
+                
+                return render(request, 'consultar.html', context)
+            else:
+                context['mensaje_error'] = 'Error al obtener el archivo'
+                return render(request, 'consultar.html', context)
 
     except Exception as e:
         context['mensaje_error'] = f'Error al obtener el archivo: {str(e)}'
         return render(request, 'consultar.html', context)
+
+def delete_file_content(request):
+    """
+    Método para borrar el contenido de un archivo a través de un endpoint DELETE.
+    """
+    try:
+        # Realizar petición DELETE al endpoint
+        response = requests.delete(f"{endpoint}/delete-file")
+        
+        # Verificar el estado de la respuesta
+        if response.status_code == 200:
+            context['mensaje_exito'] = 'Contenido del archivo eliminado correctamente'
+        elif response.status_code == 404:
+            context['mensaje_error'] = 'Archivo no encontrado en el servidor'
+        else:
+            context['mensaje_error'] = 'Error al intentar eliminar el contenido del archivo'
+        
+    except Exception as e:
+        context['mensaje_error'] = f'Error al conectar con el servidor: {str(e)}'
+
+    return render(request, 'consultar.html', context)
+
+

@@ -1,14 +1,14 @@
 <lista_respuestas>
   <respuesta>
-    <fecha>29/10/2024</fecha>
+    <fecha>28/10/2024</fecha>
     <mensajes>
-      <total>2</total>
+      <total>3</total>
       <positivos>1</positivos>
-      <negativos>1</negativos>
+      <negativos>2</negativos>
       <neutros>0</neutros>
     </mensajes>
     <analisis>
-      <empresa nombre="Nike">
+      <empresa nombre="Microsoft">
         <mensajes>
           <total>1</total>
           <positivos>0</positivos>
@@ -26,7 +26,7 @@
           </servicio>
         </servicios>
       </empresa>
-      <empresa nombre="Walmart">
+      <empresa nombre="Google">
         <mensajes>
           <total>1</total>
           <positivos>1</positivos>
@@ -34,7 +34,173 @@
           <neutros>0</neutros>
         </mensajes>
         <servicios>
-          <servicio nombre="atención">
+          <servicio nombre="facturacion">
+            <mensajes>
+              <total>1</total>
+              <positivos>1</positivos>
+              <negativos>0</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="IBM">
+        <mensajes>
+          <total>1</total>
+          <positivos>0</positivos>
+          <negativos>1</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="logística">
+            <mensajes>
+              <total>1</total>
+              <positivos>0</positivos>
+              <negativos>1</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+    </analisis>
+  </respuesta>
+  <respuesta>
+    <fecha>29/10/2024</fecha>
+    <mensajes>
+      <total>4</total>
+      <positivos>2</positivos>
+      <negativos>1</negativos>
+      <neutros>1</neutros>
+    </mensajes>
+    <analisis>
+      <empresa nombre="Apple">
+        <mensajes>
+          <total>1</total>
+          <positivos>0</positivos>
+          <negativos>0</negativos>
+          <neutros>1</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="gestión">
+            <mensajes>
+              <total>1</total>
+              <positivos>0</positivos>
+              <negativos>0</negativos>
+              <neutros>1</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="Tesla">
+        <mensajes>
+          <total>1</total>
+          <positivos>1</positivos>
+          <negativos>0</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="automatización">
+            <mensajes>
+              <total>1</total>
+              <positivos>1</positivos>
+              <negativos>0</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="Amazon">
+        <mensajes>
+          <total>1</total>
+          <positivos>1</positivos>
+          <negativos>0</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="subida">
+            <mensajes>
+              <total>1</total>
+              <positivos>1</positivos>
+              <negativos>0</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="Google">
+        <mensajes>
+          <total>1</total>
+          <positivos>0</positivos>
+          <negativos>1</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="facturacion">
+            <mensajes>
+              <total>1</total>
+              <positivos>0</positivos>
+              <negativos>1</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+    </analisis>
+  </respuesta>
+  <respuesta>
+    <fecha>30/10/2024</fecha>
+    <mensajes>
+      <total>3</total>
+      <positivos>2</positivos>
+      <negativos>1</negativos>
+      <neutros>0</neutros>
+    </mensajes>
+    <analisis>
+      <empresa nombre="Amazon">
+        <mensajes>
+          <total>1</total>
+          <positivos>1</positivos>
+          <negativos>0</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="subida">
+            <mensajes>
+              <total>1</total>
+              <positivos>1</positivos>
+              <negativos>0</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="Oracle">
+        <mensajes>
+          <total>1</total>
+          <positivos>0</positivos>
+          <negativos>1</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="protección">
+            <mensajes>
+              <total>1</total>
+              <positivos>0</positivos>
+              <negativos>1</negativos>
+              <neutros>0</neutros>
+            </mensajes>
+          </servicio>
+        </servicios>
+      </empresa>
+      <empresa nombre="IBM">
+        <mensajes>
+          <total>1</total>
+          <positivos>1</positivos>
+          <negativos>0</negativos>
+          <neutros>0</neutros>
+        </mensajes>
+        <servicios>
+          <servicio nombre="logística">
             <mensajes>
               <total>1</total>
               <positivos>1</positivos>
@@ -45,64 +211,27 @@
         </servicios>
       </empresa>
     </analisis>
+  </respuesta>
+  <respuesta>
+    <fecha>31/10/2024</fecha>
+    <mensajes>
+      <total>1</total>
+      <positivos>0</positivos>
+      <negativos>1</negativos>
+      <neutros>0</neutros>
+    </mensajes>
+    <analisis />
   </respuesta>
   <respuesta>
     <fecha>01/11/2024</fecha>
     <mensajes>
       <total>1</total>
-      <positivos>0</positivos>
-      <negativos>0</negativos>
-      <neutros>1</neutros>
-    </mensajes>
-    <analisis>
-      <empresa nombre="Adidas">
-        <mensajes>
-          <total>1</total>
-          <positivos>0</positivos>
-          <negativos>0</negativos>
-          <neutros>1</neutros>
-        </mensajes>
-        <servicios>
-          <servicio nombre="venta">
-            <mensajes>
-              <total>1</total>
-              <positivos>0</positivos>
-              <negativos>0</negativos>
-              <neutros>1</neutros>
-            </mensajes>
-          </servicio>
-        </servicios>
-      </empresa>
-    </analisis>
-  </respuesta>
-  <respuesta>
-    <fecha>02/11/2024</fecha>
-    <mensajes>
-      <total>2</total>
       <positivos>1</positivos>
       <negativos>0</negativos>
-      <neutros>1</neutros>
+      <neutros>0</neutros>
     </mensajes>
     <analisis>
-      <empresa nombre="Walmart">
-        <mensajes>
-          <total>1</total>
-          <positivos>0</positivos>
-          <negativos>0</negativos>
-          <neutros>1</neutros>
-        </mensajes>
-        <servicios>
-          <servicio nombre="atención">
-            <mensajes>
-              <total>1</total>
-              <positivos>0</positivos>
-              <negativos>0</negativos>
-              <neutros>1</neutros>
-            </mensajes>
-          </servicio>
-        </servicios>
-      </empresa>
-      <empresa nombre="Nike">
+      <empresa nombre="Oracle">
         <mensajes>
           <total>1</total>
           <positivos>1</positivos>
@@ -110,25 +239,7 @@
           <neutros>0</neutros>
         </mensajes>
         <servicios>
-          <servicio nombre="cobrar">
-            <mensajes>
-              <total>1</total>
-              <positivos>1</positivos>
-              <negativos>0</negativos>
-              <neutros>0</neutros>
-            </mensajes>
-          </servicio>
-        </servicios>
-      </empresa>
-      <empresa nombre="Adidas">
-        <mensajes>
-          <total>1</total>
-          <positivos>1</positivos>
-          <negativos>0</negativos>
-          <neutros>0</neutros>
-        </mensajes>
-        <servicios>
-          <servicio nombre="venta">
+          <servicio nombre="protección">
             <mensajes>
               <total>1</total>
               <positivos>1</positivos>

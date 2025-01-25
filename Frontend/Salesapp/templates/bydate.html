@@ -11,7 +11,7 @@
             <form id="dataForm">
                 <div class="mb-4">
                     <label for="empresa" class="block text-sm font-medium text-gray-700">Nombre de la Empresa</label>
-                    <input type="text" id="empresa" name="empresa" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+                    <input type="text" id="empresa" name="empresa" placeholder="Ingrese 'todas' para mostrar todas" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                 </div>
                 <div class="mb-4">
                     <label for="fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
@@ -19,9 +19,16 @@
                 </div>
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">Enviar</button>
             </form>
-            <div class="chart-bar mt-6">
-                <canvas id="grafica" width="200" height="100"></canvas> <!-- Tamaño ajustado -->
+            <div class="chart-bar mt-6" id="graphArea">
+                <h4 id="chartTitle" class="text-lg font-medium text-center mb-2"></h4>
+                <canvas id="grafica" width="200" height="150"></canvas>
             </div>
+            <button
+                id="generatePDF"
+                class="bg-blue-500 transform hover:scale-105 text-white py-2 px-4 rounded"
+            >
+                Descargar PDF
+            </button>
         </div>
     </div>
 </div>
@@ -36,6 +43,9 @@
         // Convertir la fecha de yyyy-mm-dd a dd/mm/yyyy
         const [year, month, day] = fecha.split('-');
         fecha = `${day}/${month}/${year}`;
+
+        // Mostrar la fecha y empresa en el título de la gráfica
+        document.getElementById('chartTitle').innerText = `Análisis de Mensajes para ${empresa} - Fecha: ${fecha}`;
 
         // Enviar los datos al backend
         fetch('http://localhost:5000/submit-data', {
@@ -70,11 +80,11 @@
                 labels: ['Positivo', 'Negativo', 'Neutro'],
                 datasets: [{
                     label: 'Análisis de Mensajes',
-                    data: [data.positivo, data.negativo, data.neutro], // Asumiendo que el backend devuelve estos campos
+                    data: [data.positivo, data.negativo, data.neutro],
                     backgroundColor: [
-                        'rgb(0, 255, 0)', // Verde para positivo
-                        'rgb(255, 0, 0)', // Rojo para negativo
-                        'rgb(255, 255, 0)' // Amarillo para neutro
+                        'rgb(41, 183, 16)',
+                        'rgb(190, 33, 33)',
+                        'rgb(76, 219, 208)'
                     ],
                     borderColor: [
                         'rgb(0, 200, 0)',
@@ -102,13 +112,62 @@
                                 return tooltipItem.label + ': ' + tooltipItem.raw;
                             }
                         }
+                    },
+                    // Configuración de datalabels para mostrar el nombre de la categoría en lugar del valor
+                    datalabels: {
+                        color: 'rgb(255, 255, 255)', // Color del texto
+                        anchor: 'center', // Posición relativa al final de la barra
+                        align: 'center',  // Alineación del texto dentro de la barra
+                        formatter: (value, context) => context.chart.data.labels[context.dataIndex] // Muestra la etiqueta en lugar del valor
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels] // Habilita el plugin
         });
     }
+    
+    
+
+    document.getElementById('generatePDF').addEventListener('click', async () => {
+        const graphArea = document.getElementById('graphArea');
+        
+        html2canvas(graphArea, { scale: 2 }).then(async canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('landscape');
+            
+            const imgWidth = 280;  // Ajusta el ancho de la imagen
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            // Ajustar la posición de la imagen para que haya más espacio inferior
+            const marginTop = 10;
+            const marginLeft = 10;
+            pdf.addImage(imgData, 'PNG', marginLeft, marginTop, imgWidth, imgHeight);
+            
+            const pdfBlob = pdf.output('blob');
+            
+            // Usar la API de archivos para guardar el PDF
+            const handle = await window.showSaveFilePicker({
+                suggestedName: 'analysis_report.pdf',
+                types: [{
+                    description: 'PDF Files',
+                    accept: { 'application/pdf': ['.pdf'] }
+                }]
+            });
+            
+            const writable = await handle.createWritable();
+            await writable.write(pdfBlob);
+            await writable.close();
+        });
+    });
+    
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
 
 {% endblock %}

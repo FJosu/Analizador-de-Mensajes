@@ -14,5 +14,8 @@ urlpatterns = [
     path('Student/', views.studentdata , name = 'Student'),
     path('bydate/', views.bydate, name = 'bydate'),
     path('rangebydate/', views.rangebydate,name = 'rangebydate'),
+    path('message/', views.message, name = 'message'),
+    path('pdf/', views.pdf, name = 'pdf'),
+   # path('delete/',views.delete_file_content,name = 'delete'),
     
 ]

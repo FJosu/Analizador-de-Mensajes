@@ -1,0 +1,51 @@
+{% extends "peticion.html" %}
+{% load static %}
+
+{% block content %}
+<h2 style="text-align: center; color: #4A4A4A;">Analizar Mensaje de Sentimiento</h2>
+
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+    <div style="margin-bottom: 20px;">
+        <!-- Cuadro de texto para ingresar el mensaje -->
+        <label for="mensaje" style="font-weight: bold; display: block; margin-bottom: 5px;">Escribe el mensaje:</label>
+        <textarea id="mensaje" rows="4" cols="50" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none;"></textarea>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <!-- Botón para enviar el mensaje -->
+        <button onclick="analizarMensaje()" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            Analizar
+        </button>
+    </div>
+
+    <div>
+        <!-- Cuadro de texto para mostrar la respuesta -->
+        <label for="respuesta" style="font-weight: bold; display: block; margin-bottom: 5px;">Respuesta:</label>
+        <textarea id="respuesta" rows="10" cols="50" readonly style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none;"></textarea>
+    </div>
+</div>
+
+<script>
+    function analizarMensaje() {
+        const mensaje = document.getElementById("mensaje").value;
+
+        fetch('http://localhost:5000/analizar-mensaje', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mensaje: mensaje })
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("respuesta").value = data;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById("respuesta").value = "Error al procesar el mensaje.";
+        });
+    }
+</script>
+
+
+{% endblock %}
